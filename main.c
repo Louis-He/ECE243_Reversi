@@ -78,9 +78,16 @@ int main(void){
     }
 }
 
-// void draw_layout(){
-
-// }
+void draw_layout(){
+    // draw board
+    int i = 7;
+    for(; i < 239; i ++) {
+        int j = 7;
+        for (; j < 238; j ++) {
+            plot_pixel(i, j, 0x0300);
+        }
+    }
+}
 
 void draw_chess_on_board(int** board){}
 
