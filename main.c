@@ -78,9 +78,9 @@ int main(void){
     }
 }
 
-void draw_layout(){
+// void draw_layout(){
 
-}
+// }
 
 void draw_chess_on_board(int** board){}
 
