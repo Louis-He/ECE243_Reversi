@@ -69,8 +69,7 @@ int main(void){
 
         // code for drawing
         draw_board();
-        draw_circle(60, 60, 2);
-
+        draw_chess(5, 0, 2);
         // code for updating
 
 
@@ -125,7 +124,12 @@ void clear_screen(){
     }
 }
 
-void draw_chess(int row, int col, int player){}
+void draw_chess(int row, int col, int player){
+    int leftUpperCorner_X = 22 + col * (2 + 25);
+    int leftUpperCorner_Y = 22 + row * (2 + 25);
+
+    draw_circle(leftUpperCorner_X + 13, leftUpperCorner_Y + 13, player);
+}
 
 void draw_line(int xa, int ya, int xb, int yb, short int color){
     int is_steep;
