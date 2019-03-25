@@ -30,7 +30,7 @@ const unsigned short CHESSWHITE[169]={
 
 // high level API
 void draw_layout();
-void draw_chess_on_board(int** board);
+void draw_chess_on_board(volatile int* board);
 void draw_board();
 void clear_screen();
 
@@ -61,7 +61,21 @@ int main(void){
 
     clear_screen();
     // initialize drawing
-    volatile int board[8][8]; // 0 for none, 1 for black, 2 for white
+    volatile int board[64]; // 0 for none, 1 for black, 2 for white
+
+    // initialize board
+    int i = 0;
+    for(; i < 8; i++){
+        int j = 0;
+        for(; j < 8; j++){
+            board[i * 8 + j] = 0;
+        }
+    }
+
+    board[3 * 8 + 3] = 1;
+    board[3 * 8 + 4] = 2;
+    board[4 * 8 + 3] = 2;
+    board[4 * 8 + 4] = 1;
 
     while (1){
         /* Erase any boxes and lines that were drawn in the last iteration */
@@ -69,7 +83,7 @@ int main(void){
 
         // code for drawing
         draw_board();
-        draw_chess(5, 0, 2);
+        draw_chess_on_board(board);
         // code for updating
 
 
@@ -89,7 +103,15 @@ void draw_layout(){
     }
 }
 
-void draw_chess_on_board(int** board){}
+void draw_chess_on_board(volatile int* board){
+    volatile int i = 0;
+    for(; i < 8; i++){
+        volatile int j = 0;
+        for(; j < 8; j++){
+            draw_chess(i, j, board[i * 8 + j]);
+        }
+    }
+}
 
 void draw_board(){
     // draw top line
