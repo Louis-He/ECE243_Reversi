@@ -58,31 +58,31 @@ void draw_chess_on_board(int** board){}
 
 void draw_board(){
     // draw top line
-    draw_line(6, 6, 237, 6, 0xFFFF);
+    draw_line(21, 21, 237, 21, 0xFFFF);
 
     // draw bottom line
-    draw_line(6, 237, 237, 237, 0xFFFF);
+    draw_line(21, 237, 237, 237, 0xFFFF);
 
     // draw left line
-    draw_line(6, 6, 6, 237, 0xFFFF);
+    draw_line(21, 21, 21, 237, 0xFFFF);
 
     // draw right line
-    draw_line(237, 6, 237, 237, 0xFFFF);
+    draw_line(237, 21, 237, 237, 0xFFFF);
 
     // draw horizontal lines
-    int i = 0; int current_y = 27 + 7;
+    int i = 0; int current_y = 27 + 22;
     for(; i < 7; i++){
-        draw_line(6, current_y, 237, current_y, 0xFFFF);
-        draw_line(6, current_y + 1, 237, current_y + 1, 0xFFFF);
-        current_y += 29;
+        draw_line(21, current_y, 237, current_y, 0xFFFF);
+        draw_line(21, current_y + 1, 237, current_y + 1, 0xFFFF);
+        current_y += 27;
     }
 
     // draw vertical lines
-    i = 0; int current_x = 27 + 7;
+    i = 0; int current_x = 27 + 22;
     for(; i < 7; i++){
-        draw_line(current_x, 6, current_x, 237, 0xFFFF);
-        draw_line(current_x + 1, 6, current_x + 1, 237, 0xFFFF);
-        current_x += 29;
+        draw_line(current_x, 21, current_x, 237, 0xFFFF);
+        draw_line(current_x + 1, 21, current_x + 1, 237, 0xFFFF);
+        current_x += 27;
     }
 }
 
