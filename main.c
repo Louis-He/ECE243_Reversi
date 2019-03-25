@@ -83,7 +83,7 @@ void draw_layout(){
     int i = 7;
     for(; i < 239; i ++) {
         int j = 7;
-        for (; j < 238; j ++) {
+        for (; j < 239; j ++) {
             plot_pixel(i, j, 0x0300);
         }
     }
