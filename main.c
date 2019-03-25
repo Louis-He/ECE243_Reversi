@@ -2,7 +2,8 @@ volatile int pixel_buffer_start; // global variable
 
 // high level API
 void draw_layout();
-void draw_board(int** board);
+void draw_chess_on_board(int** board);
+void draw_board();
 void clear_screen();
 
 // low level API
@@ -39,7 +40,7 @@ int main(void){
         clear_screen();
 
         // code for drawing
-
+        draw_board();
 
         // code for updating
 
@@ -49,9 +50,41 @@ int main(void){
     }
 }
 
-void draw_layout();
+void draw_layout(){
 
-void draw_board(int** board){}
+}
+
+void draw_chess_on_board(int** board){}
+
+void draw_board(){
+    // draw top line
+    draw_line(6, 6, 237, 6, 0xFFFF);
+
+    // draw bottom line
+    draw_line(6, 237, 237, 237, 0xFFFF);
+
+    // draw left line
+    draw_line(6, 6, 6, 237, 0xFFFF);
+
+    // draw right line
+    draw_line(237, 6, 237, 237, 0xFFFF);
+
+    // draw horizontal lines
+    int i = 0; int current_y = 27 + 7;
+    for(; i < 7; i++){
+        draw_line(6, current_y, 237, current_y, 0xFFFF);
+        draw_line(6, current_y + 1, 237, current_y + 1, 0xFFFF);
+        current_y += 29;
+    }
+
+    // draw vertical lines
+    i = 0; int current_x = 27 + 7;
+    for(; i < 7; i++){
+        draw_line(current_x, 6, current_x, 237, 0xFFFF);
+        draw_line(current_x + 1, 6, current_x + 1, 237, 0xFFFF);
+        current_x += 29;
+    }
+}
 
 void clear_screen(){
     int i = 0;
