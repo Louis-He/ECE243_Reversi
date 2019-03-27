@@ -7,6 +7,14 @@ volatile int pattern;
 volatile int pixel_buffer_start; // global variable
 volatile int currentPlayer = 1;
 volatile int board[64]; // 0 for none, 1 for black, 2 for white
+volatile int isError = 0; // [bool] for whether to draw error msg
+volatile int errMsgId = 0; // int id for error msg ID
+
+volatile int isLegal; // local usage
+
+/* errMsgID:
+ * 1: invalid move
+ */
 
 const unsigned short CHESSBLACK[169] = {
         0x0000, 0x0000, 0x0000, 0x0000, 0x1082, 0x1082, 0x1082, 0x1082, 0x1082, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x4208,   // 0x0010 (16) pixels
@@ -44,6 +52,16 @@ void clear_screen();
 
 // board manipulation
 void play_chess(int row, int col, int player);
+
+// chess logic
+void tryMove(int row, int col, int player); // NOT DONE, need to play chess HERE!!!
+void newChessMove(int row, int col, int player);
+void updateChessInDirection(int row, int col, int player, int deltaRow, int deltaCol);
+void chessMove(int row, int col, int player);
+void checkLegalInDirection(int row, int col, int player, int deltaRow, int deltaCol);
+
+void setErrorMsg(int errorID);
+void clearErrorMsg();
 
 // low level API
 void draw_chess(int row, int col, int player);
@@ -220,6 +238,146 @@ void play_chess(int row, int col, int player){
     board[row * 8 + col] = player;
 }
 
+
+// chess logic
+void tryMove(int row, int col, int player){
+    volatile int avaliable = 0; // [bool]
+    volatile int occupied = 0; // [bool]
+
+    if(board[row * 8 + col] != 0){
+        occupied = 1;
+    }
+
+    if (!occupied){
+        volatile int rowCheckDir = -1;
+        for(; rowCheckDir <= 1; rowCheckDir++){
+            volatile int colCheckDir = -1;
+            for(; colCheckDir <= 1; colCheckDir++){
+                if ( !avaliable && !(rowCheckDir == 0 && colCheckDir == 0)){
+                    isLegal = 0;
+                    checkLegalInDirection(row, col, player, rowCheckDir, colCheckDir);
+                    if(isLegal){
+                        avaliable = 1;
+                        // PLAY CHESS HEREE!!!!
+                        newChessMove(row, col, player);
+                    }else{
+                        setErrorMsg(1);
+                    }
+                }
+            }
+        }
+    }else{
+        setErrorMsg(1);
+    }
+}
+
+void newChessMove(int row, int col, int player){
+    volatile int rowCheckDir, colCheckDir;
+
+    //################# UPDATE IN EIGHT DIRECTIONS####################//
+    rowCheckDir = -1;
+    for(; rowCheckDir <= 1; rowCheckDir++){
+        colCheckDir = -1;
+        for(; colCheckDir <= 1; colCheckDir++){
+            if (!(rowCheckDir==0 && colCheckDir==0)){
+                updateChessInDirection(row, col, player, rowCheckDir, colCheckDir);
+            }
+        }
+    }
+    chessMove(row, col, player);
+}
+
+// change the board in one direction
+void updateChessInDirection(int row, int col, int player, int deltaRow, int deltaCol){
+    volatile int originalRow = row;
+    volatile int originalCol = col;
+    volatile int changeColor = 1; // [bool]
+    volatile int opponent;
+
+    // determine the color of opponent
+    if (player == 1){
+        opponent = 2;
+    }else{
+        opponent = 1;
+    }
+
+    // If valid then change the color
+    //
+    isLegal = 0;
+    checkLegalInDirection(row, col, player, deltaRow, deltaCol);
+    if (isLegal){
+        volatile int checkCol = originalCol + deltaCol;
+        volatile int checkRow = originalRow + deltaRow;
+        while (checkCol < 8 && checkRow < 8 && checkCol >= 0 && checkRow >= 0){
+            if(board[checkRow * 8 + checkCol] == 0 || board[checkRow * 8 + checkCol] == player){
+                changeColor = 0;
+            }
+
+            if (changeColor == 1) {
+                chessMove(checkRow, checkCol, player);
+            }
+            checkRow += deltaRow;
+            checkCol += deltaCol;
+        }
+    }
+}
+
+// Move single chess
+void chessMove(int row, int col, int player){
+    board[row * 8 + col] = player;
+}
+
+void checkLegalInDirection(int row, int col, int player, int deltaRow, int deltaCol){
+    // convert letter expression to number expression
+    volatile int originalRow = row;
+    volatile int originalCol = col;
+    volatile int number = 0;
+
+    // the first encountered grid is opponent's chess or not
+    volatile int opponentflag = 0; // [bool]
+
+    volatile int checkCol = originalCol + deltaCol;
+    volatile int checkRow = originalRow + deltaRow;
+    volatile int opponent;
+
+    // determine the opponent
+    if (player == 1){
+        opponent = 2;
+    }else{
+        opponent = 1;
+    }
+
+    // check for the first chess, whether it is opponent and set opponentflag according
+    if((originalRow + deltaRow < 8) &&
+        (originalRow + deltaRow >= 0) &&
+        (originalCol + deltaCol < 8) &&
+        (originalCol + deltaCol >= 0) &&
+        (board[(originalRow + deltaRow) * 8 + (originalCol + deltaCol)] == opponent)){
+        opponentflag = 1; // set flag to true
+    }
+
+    isLegal = 0;
+    while (opponentflag && checkCol < 8 && checkRow < 8 && checkCol >= 0 && checkRow >= 0){
+        if(board[checkRow * 8 + checkCol] == 0){
+            isLegal = 0; // return false;
+            return;
+        }
+        if(board[checkRow * 8 + checkCol] == player){
+            isLegal = 1; // return true;
+            return;
+        }
+        checkRow += deltaRow;
+        checkCol += deltaCol;
+        number++;
+    }
+
+    // isLegal = 0; // return false;
+}
+
+
+void setErrorMsg(int errorID){}
+
+void clearErrorMsg(){}
 
 
 void draw_chess(int row, int col, int player){
@@ -413,7 +571,7 @@ void pushbutton_ISR(void) {
      * To Be implemented
      */
 
-    play_chess(row - 1, col - 1, currentPlayer);
+    tryMove(row - 1, col - 1, currentPlayer);
     if (currentPlayer == 1){
         currentPlayer = 2;
     } else {
