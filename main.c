@@ -5,6 +5,8 @@
 volatile int key_dir;
 volatile int pattern;
 volatile int pixel_buffer_start; // global variable
+volatile int currentPlayer = 1;
+volatile int board[64]; // 0 for none, 1 for black, 2 for white
 
 const unsigned short CHESSBLACK[169] = {
         0x0000, 0x0000, 0x0000, 0x0000, 0x1082, 0x1082, 0x1082, 0x1082, 0x1082, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x4208,   // 0x0010 (16) pixels
@@ -36,9 +38,12 @@ const unsigned short CHESSWHITE[169] = {
 
 // high level API
 void draw_layout();
-void draw_chess_on_board(volatile int* board);
+void draw_chess_on_board();
 void draw_board();
 void clear_screen();
+
+// board manipulation
+void play_chess(int row, int col, int player);
 
 // low level API
 void draw_chess(int row, int col, int player);
@@ -118,7 +123,6 @@ int main(void){
 
     clear_screen();
     // initialize drawing
-    volatile int board[64]; // 0 for none, 1 for black, 2 for white
 
     // initialize board
     int i = 0;
@@ -141,7 +145,7 @@ int main(void){
         // code for drawing
         draw_layout();
         draw_board();
-        draw_chess_on_board(board);
+        draw_chess_on_board();
         // code for updating
 
 
@@ -161,7 +165,7 @@ void draw_layout(){
     }
 }
 
-void draw_chess_on_board(volatile int* board){
+void draw_chess_on_board(){
     volatile int i = 0;
     for(; i < 8; i++){
         volatile int j = 0;
@@ -210,6 +214,13 @@ void clear_screen(){
         }
     }
 }
+
+
+void play_chess(int row, int col, int player){
+    board[row * 8 + col] = player;
+}
+
+
 
 void draw_chess(int row, int col, int player){
     int leftUpperCorner_X = 22 + col * (2 + 25);
@@ -318,6 +329,7 @@ void plot_pixel(int x, int y, short int line_color){
     *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
 }
 
+
 void wait_for_vsync(){
     volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
     register int status;
@@ -353,7 +365,6 @@ void enable_A9_interrupts(void) {
     int status = SVC_MODE | INT_ENABLE;
     asm("msr cpsr, %[ps]" : : [ps] "r"(status));
 }
-
 
 /*
  * Configure the Generic Interrupt Controller (GIC)
@@ -391,6 +402,23 @@ void pushbutton_ISR(void) {
     *(KEY_ptr + 3) = press; // Clear the interrupt
 
     key_dir ^= 1; // Toggle key_dir value
+
+    volatile int * SW_ptr = (int *)SW_BASE;
+    int user_sw = *SW_ptr;
+    int col = user_sw & 0x0000000F;
+    int row = user_sw & 0x000003C0;
+    row = row >> 6;
+    // check Valid First
+    /*
+     * To Be implemented
+     */
+
+    play_chess(row - 1, col - 1, currentPlayer);
+    if (currentPlayer == 1){
+        currentPlayer = 2;
+    } else {
+        currentPlayer = 1;
+    }
 
     return;
 }
