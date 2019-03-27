@@ -11,6 +11,7 @@ volatile int isError = 0; // [bool] for whether to draw error msg
 volatile int errMsgId = 0; // int id for error msg ID
 
 volatile int isLegal; // local usage
+volatile int isMoreMove; // local usage
 
 /* errMsgID:
  * 1: invalid move
@@ -374,7 +375,6 @@ void checkLegalInDirection(int row, int col, int player, int deltaRow, int delta
     // isLegal = 0; // return false;
 }
 
-
 void setErrorMsg(int errorID){}
 
 void clearErrorMsg(){}
@@ -572,11 +572,13 @@ void pushbutton_ISR(void) {
      */
 
     tryMove(row - 1, col - 1, currentPlayer);
+
     if (currentPlayer == 1){
         currentPlayer = 2;
     } else {
         currentPlayer = 1;
     }
+
 
     return;
 }
