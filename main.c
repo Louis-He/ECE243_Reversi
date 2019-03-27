@@ -346,6 +346,12 @@ void draw_layout()
             plot_pixel(i, j, 0x0300);
         }
     }
+    // draw lines
+    i = 238;
+    int j = 0;
+    for (; j < 3; j ++) {
+        draw_line(i + j, 0, i + j, 239, 0xFFFF);
+    }
 }
 
 void draw_chess_on_board()
