@@ -14,7 +14,7 @@ volatile int isGameOver = 0; // [bool] global
 
 volatile int isLegal;    // local usage
 volatile int isMoreMove; // local usage
-
+volatile int isSuccessMove; // return usage
 
 /* errMsgID:
  * 1: invalid move
@@ -453,6 +453,7 @@ void tryMove(int row, int col, int player, int isRealMove){
                         // PLAY CHESS HEREE!!!!
 
                         if(isRealMove){
+                            isSuccessMove = 1;
                             newChessMove(row, col, player);
                         }
                         return;
@@ -534,7 +535,7 @@ void chessMove(int row, int col, int player){
 }
 
 void gameOver(){
-
+    isGameOver = 1;
 }
 
 // Check if there is more legal move for player
@@ -611,7 +612,10 @@ void checkLegalInDirection(int row, int col, int player, int deltaRow, int delta
 
 void setErrorMsg(int errorID) {}
 
-void clearErrorMsg() {}
+void clearErrorMsg() {
+    isError = 0;
+    errMsgId = 0;
+}
 
 void draw_chess(int row, int col, int player){
     int leftUpperCorner_X = 22 + col * (2 + 25);
@@ -865,7 +869,13 @@ void pushbutton_ISR(void){
          * To Be implemented
          */
 
+        isSuccessMove = 0;
         tryMove(row - 1, col - 1, currentPlayer, 1);
+
+        if(isSuccessMove == 0){
+            // if user entered a invalid move
+            return;
+        }
 
         if (currentPlayer == 1) {
             currentPlayer = 2;
