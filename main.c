@@ -193,7 +193,7 @@ void draw_board_row_col_num();
 void play_chess(int row, int col, int player);
 
 // chess logic
-void tryMove(int row, int col, int player); // NOT DONE, need to play chess HERE!!!
+void tryMove(int row, int col, int player, int isRealMove); // NOT DONE, need to play chess HERE!!!
 void newChessMove(int row, int col, int player);
 void updateChessInDirection(int row, int col, int player, int deltaRow, int deltaCol);
 void chessMove(int row, int col, int player);
@@ -441,8 +441,7 @@ void play_chess(int row, int col, int player)
 }
 
 // chess logic
-void tryMove(int row, int col, int player)
-{
+void tryMove(int row, int col, int player, int isRealMove){
     volatile int avaliable = 0; // [bool]
     volatile int occupied = 0;  // [bool]
 
@@ -467,10 +466,11 @@ void tryMove(int row, int col, int player)
                     {
                         avaliable = 1;
                         // PLAY CHESS HEREE!!!!
-                        newChessMove(row, col, player);
-                    }
-                    else
-                    {
+
+                        if(isRealMove){
+                            newChessMove(row, col, player);
+                        }
+                    }else{
                         setErrorMsg(1);
                     }
                 }
@@ -859,7 +859,7 @@ void pushbutton_ISR(void)
      * To Be implemented
      */
 
-    tryMove(row - 1, col - 1, currentPlayer);
+    tryMove(row - 1, col - 1, currentPlayer, 1);
 
     if (currentPlayer == 1)
     {
