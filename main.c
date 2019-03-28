@@ -11,6 +11,8 @@ volatile int isError = 0;  // [bool] for whether to draw error msg
 volatile int errMsgId = 0; // int id for error msg ID
 
 volatile int isGameOver = 0; // [bool] global
+volatile int scoreWhite = 2;
+volatile int scoreBlack = 2;
 
 volatile int isLegal;    // local usage
 volatile int isMoreMove; // local usage
@@ -201,6 +203,7 @@ void newChessMove(int row, int col, int player);
 void updateChessInDirection(int row, int col, int player, int deltaRow, int deltaCol);
 void chessMove(int row, int col, int player);
 void gameOver();
+void countChess();
 void checkMoreMove(int player);
 void checkLegalInDirection(int row, int col, int player, int deltaRow, int deltaCol);
 
@@ -538,6 +541,25 @@ void gameOver(){
     isGameOver = 1;
 }
 
+void countChess(){
+    scoreWhite = 0;
+    scoreBlack = 0;
+
+    int i = 0;
+    for(; i < 8; i++){
+        int j = 0;
+        for(; j < 8; j++){
+            if(board[i * 8 + j] == 1){
+                scoreBlack++;
+            }
+            if(board[i * 8 + j] == 2){
+                scoreWhite++;
+            }
+        }
+    }
+    return;
+}
+
 // Check if there is more legal move for player
 void checkMoreMove(int player){
     isMoreMove = 0;
@@ -853,6 +875,8 @@ void pushbutton_ISR(void){
         isGameOver = 0;
         currentPlayer = 1;
         isError = 0;
+        scoreWhite = 2;
+        scoreBlack = 2;
         return;
     }
 
