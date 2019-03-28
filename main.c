@@ -10,8 +10,11 @@ volatile int board[64];    // 0 for none, 1 for black, 2 for white
 volatile int isError = 0;  // [bool] for whether to draw error msg
 volatile int errMsgId = 0; // int id for error msg ID
 
+volatile int isGameOver = 0; // [bool] global
+
 volatile int isLegal;    // local usage
 volatile int isMoreMove; // local usage
+
 
 /* errMsgID:
  * 1: invalid move
@@ -197,6 +200,8 @@ void tryMove(int row, int col, int player, int isRealMove); // NOT DONE, need to
 void newChessMove(int row, int col, int player);
 void updateChessInDirection(int row, int col, int player, int deltaRow, int deltaCol);
 void chessMove(int row, int col, int player);
+void gameOver();
+void checkMoreMove(int player);
 void checkLegalInDirection(int row, int col, int player, int deltaRow, int deltaCol);
 
 void setErrorMsg(int errorID);
@@ -219,8 +224,7 @@ void config_KEYs();
 void pushbutton_ISR(void);
 
 // Define the IRQ exception handler
-void __attribute__((interrupt)) __cs3_isr_irq(void)
-{
+void __attribute__((interrupt)) __cs3_isr_irq(void){
     // Read the ICCIAR from the processor interface
     int address = MPCORE_GIC_CPUIF + ICCIAR;
     int int_ID = *((int *)address);
@@ -240,39 +244,32 @@ void __attribute__((interrupt)) __cs3_isr_irq(void)
 }
 
 // Define the remaining exception handlers
-void __attribute__((interrupt)) __cs3_reset(void)
-{
+void __attribute__((interrupt)) __cs3_reset(void){
     while (1)
         ;
 }
-void __attribute__((interrupt)) __cs3_isr_undef(void)
-{
+void __attribute__((interrupt)) __cs3_isr_undef(void){
     while (1)
         ;
 }
-void __attribute__((interrupt)) __cs3_isr_swi(void)
-{
+void __attribute__((interrupt)) __cs3_isr_swi(void){
     while (1)
         ;
 }
-void __attribute__((interrupt)) __cs3_isr_pabort(void)
-{
+void __attribute__((interrupt)) __cs3_isr_pabort(void){
     while (1)
         ;
 }
-void __attribute__((interrupt)) __cs3_isr_dabort(void)
-{
+void __attribute__((interrupt)) __cs3_isr_dabort(void){
     while (1)
         ;
 }
-void __attribute__((interrupt)) __cs3_isr_fiq(void)
-{
+void __attribute__((interrupt)) __cs3_isr_fiq(void){
     while (1)
         ;
 }
 
-int main(void)
-{
+int main(void){
     /* set interrupt START*/
     set_A9_IRQ_stack();
 
@@ -334,8 +331,7 @@ int main(void)
     }
 }
 
-void draw_layout()
-{
+void draw_layout(){
     // draw board
     int i = 22;
     for (; i < 239; i++)
@@ -354,8 +350,7 @@ void draw_layout()
     }
 }
 
-void draw_chess_on_board()
-{
+void draw_chess_on_board(){
     volatile int i = 0;
     for (; i < 8; i++)
     {
@@ -367,8 +362,7 @@ void draw_chess_on_board()
     }
 }
 
-void draw_board()
-{
+void draw_board(){
     // draw top line
     draw_line(21, 21, 237, 21, 0xFFFF);
 
@@ -402,8 +396,7 @@ void draw_board()
     }
 }
 
-void clear_screen()
-{
+void clear_screen(){
     int i = 0;
     for (; i < 320; i++)
     {
@@ -415,8 +408,7 @@ void clear_screen()
     }
 }
 
-void draw_board_row_col_num()
-{
+void draw_board_row_col_num(){
     // draw row numbers;
     int initial_pos_x = 6;
     int initial_pos_y = 28;
@@ -435,8 +427,7 @@ void draw_board_row_col_num()
     }
 }
 
-void play_chess(int row, int col, int player)
-{
+void play_chess(int row, int col, int player){
     board[row * 8 + col] = player;
 }
 
@@ -445,46 +436,38 @@ void tryMove(int row, int col, int player, int isRealMove){
     volatile int avaliable = 0; // [bool]
     volatile int occupied = 0;  // [bool]
 
-    if (board[row * 8 + col] != 0)
-    {
+    if (board[row * 8 + col] != 0){
         occupied = 1;
     }
 
-    if (!occupied)
-    {
+    if (!occupied){
         volatile int rowCheckDir = -1;
-        for (; rowCheckDir <= 1; rowCheckDir++)
-        {
+        for (; rowCheckDir <= 1; rowCheckDir++) {
             volatile int colCheckDir = -1;
-            for (; colCheckDir <= 1; colCheckDir++)
-            {
-                if (!avaliable && !(rowCheckDir == 0 && colCheckDir == 0))
-                {
+            for (; colCheckDir <= 1; colCheckDir++) {
+                if (!avaliable && !(rowCheckDir == 0 && colCheckDir == 0)){
                     isLegal = 0;
                     checkLegalInDirection(row, col, player, rowCheckDir, colCheckDir);
-                    if (isLegal)
-                    {
+                    if (isLegal){
                         avaliable = 1;
                         // PLAY CHESS HEREE!!!!
 
                         if(isRealMove){
                             newChessMove(row, col, player);
                         }
-                    }else{
+                        return;
+                    } else {
                         setErrorMsg(1);
                     }
                 }
             }
         }
-    }
-    else
-    {
+    } else {
         setErrorMsg(1);
     }
 }
 
-void newChessMove(int row, int col, int player)
-{
+void newChessMove(int row, int col, int player){
     volatile int rowCheckDir, colCheckDir;
 
     //################# UPDATE IN EIGHT DIRECTIONS####################//
@@ -504,8 +487,7 @@ void newChessMove(int row, int col, int player)
 }
 
 // change the board in one direction
-void updateChessInDirection(int row, int col, int player, int deltaRow, int deltaCol)
-{
+void updateChessInDirection(int row, int col, int player, int deltaRow, int deltaCol){
     volatile int originalRow = row;
     volatile int originalCol = col;
     volatile int changeColor = 1; // [bool]
@@ -547,13 +529,33 @@ void updateChessInDirection(int row, int col, int player, int deltaRow, int delt
 }
 
 // Move single chess
-void chessMove(int row, int col, int player)
-{
+void chessMove(int row, int col, int player){
     board[row * 8 + col] = player;
 }
 
-void checkLegalInDirection(int row, int col, int player, int deltaRow, int deltaCol)
-{
+void gameOver(){
+
+}
+
+// Check if there is more legal move for player
+void checkMoreMove(int player){
+    isMoreMove = 0;
+
+    int i = 0;
+    for(; i < 8; i++){
+        int j = 0;
+        for(; j < 8; j++){
+            tryMove(i, j, player, 0);
+            if(isLegal){
+                isMoreMove = 1;
+                return;
+            }
+        }
+    }
+    isMoreMove = 0;
+}
+
+void checkLegalInDirection(int row, int col, int player, int deltaRow, int deltaCol){
     // convert letter expression to number expression
     volatile int originalRow = row;
     volatile int originalCol = col;
@@ -611,16 +613,14 @@ void setErrorMsg(int errorID) {}
 
 void clearErrorMsg() {}
 
-void draw_chess(int row, int col, int player)
-{
+void draw_chess(int row, int col, int player){
     int leftUpperCorner_X = 22 + col * (2 + 25);
     int leftUpperCorner_Y = 22 + row * (2 + 25);
 
     draw_circle(leftUpperCorner_X + 13, leftUpperCorner_Y + 13, player);
 }
 
-void draw_line(int xa, int ya, int xb, int yb, short int color)
-{
+void draw_line(int xa, int ya, int xb, int yb, short int color){
     int is_steep;
 
     if (abs(yb - ya) > abs(xb - xa))
@@ -691,8 +691,7 @@ void draw_line(int xa, int ya, int xb, int yb, short int color)
 
 // xa, ya is left bottom corner
 // all parameters must be valid, please check before using this func.
-void draw_box(int xa, int ya, int width, int height, short int color)
-{
+void draw_box(int xa, int ya, int width, int height, short int color){
     int x_increment = 0;
     for (; x_increment < width; x_increment++)
     {
@@ -704,36 +703,27 @@ void draw_box(int xa, int ya, int width, int height, short int color)
     }
 }
 
-void draw_circle(int xCenter, int yCenter, int player)
-{
+void draw_circle(int xCenter, int yCenter, int player){
     int currentX = xCenter - 6;
     int currentY = yCenter - 6;
 
-    if (player == 1)
-    {
+    if (player == 1){
         volatile int i = 0;
-        for (; i < 13; i++)
-        {
+        for (; i < 13; i++){
             volatile int j = 0;
-            for (; j < 13; j++)
-            {
-                if (CHESSBLACK[i * 13 + j] != 0x0000)
-                {
+            for (; j < 13; j++){
+                if (CHESSBLACK[i * 13 + j] != 0x0000){
                     plot_pixel(currentX + j, currentY + i, CHESSBLACK[i * 13 + j]);
                 }
             }
         }
     }
-    else if (player == 2)
-    {
+    else if (player == 2){
         volatile int i = 0;
-        for (; i < 13; i++)
-        {
+        for (; i < 13; i++){
             volatile int j = 0;
-            for (; j < 13; j++)
-            {
-                if (CHESSWHITE[i * 13 + j] != 0x0000)
-                {
+            for (; j < 13; j++){
+                if (CHESSWHITE[i * 13 + j] != 0x0000){
                     plot_pixel(currentX + j, currentY + i, CHESSWHITE[i * 13 + j]);
                 }
             }
@@ -741,13 +731,11 @@ void draw_circle(int xCenter, int yCenter, int player)
     }
 }
 
-void plot_pixel(int x, int y, short int line_color)
-{
+void plot_pixel(int x, int y, short int line_color){
     *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
 }
 
-void draw_number(int x, int y, int num)
-{
+void draw_number(int x, int y, int num){
     int i = 0;
     for (; i < 16; i++)
     { // rows
@@ -761,8 +749,7 @@ void draw_number(int x, int y, int num)
     }
 }
 
-void wait_for_vsync()
-{
+void wait_for_vsync(){
     volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
     register int status;
 
@@ -779,8 +766,7 @@ void wait_for_vsync()
  * Initialize the banked stack pointer register for IRQ mode
 */
 
-void set_A9_IRQ_stack(void)
-{
+void set_A9_IRQ_stack(void){
     int stack, mode;
     stack = A9_ONCHIP_END - 7; // top of A9 onchip memory, aligned to 8 bytes /* change processor to IRQ mode with interrupts disabled */
     mode = INT_DISABLE | IRQ_MODE;
@@ -801,8 +787,7 @@ void set_A9_IRQ_stack(void)
 /*
  * Turn on interrupts in the ARM processor
 */
-void enable_A9_interrupts(void)
-{
+void enable_A9_interrupts(void){
     int status = SVC_MODE | INT_ENABLE;
     asm("msr cpsr, %[ps]"
         :
@@ -812,8 +797,7 @@ void enable_A9_interrupts(void)
 /*
  * Configure the Generic Interrupt Controller (GIC)
 */
-void config_GIC(void)
-{
+void config_GIC(void){
     int address; // used to calculate register addresses
     /* configure the HPS timer interrupt */
     *((int *)0xFFFED8C4) = 0x01000000;
@@ -833,14 +817,12 @@ void config_GIC(void)
 }
 
 /* setup the KEY interrupts in the FPGA */
-void config_KEYs()
-{
+void config_KEYs(){
     volatile int *KEY_ptr = (int *)KEY_BASE; // pushbutton KEY address
     *(KEY_ptr + 2) = 0x3;                    // enable interrupts for KEY[1]
 }
 
-void pushbutton_ISR(void)
-{
+void pushbutton_ISR(void){
     volatile int *KEY_ptr = (int *)KEY_BASE;
     int press;
 
@@ -849,25 +831,68 @@ void pushbutton_ISR(void)
 
     key_dir ^= 1; // Toggle key_dir value
 
-    volatile int *SW_ptr = (int *)SW_BASE;
-    int user_sw = *SW_ptr;
-    int col = user_sw & 0x0000000F;
-    int row = user_sw & 0x000003C0;
-    row = row >> 6;
-    // check Valid First
-    /*
-     * To Be implemented
-     */
+    // KEY1 for clear the whole board
+    if(press == 0b0010){
+        int i = 0;
+        for(; i < 8; i++){
+            int j = 0;
+            for(; j < 8; j++){
+                board[i * 8 + j] = 0;
+            }
+        }
+        board[3 * 8 + 3] = 1;
+        board[3 * 8 + 4] = 2;
+        board[4 * 8 + 3] = 2;
+        board[4 * 8 + 4] = 1;
 
-    tryMove(row - 1, col - 1, currentPlayer, 1);
-
-    if (currentPlayer == 1)
-    {
-        currentPlayer = 2;
-    }
-    else
-    {
+        // set all variable back to initial state
+        isGameOver = 0;
         currentPlayer = 1;
+        isError = 0;
+        return;
+    }
+
+    if(isGameOver) {
+        // do nothing??
+    } else {
+        volatile int *SW_ptr = (int *) SW_BASE;
+        int user_sw = *SW_ptr;
+        int col = user_sw & 0x0000000F;
+        int row = user_sw & 0x000003C0;
+        row = row >> 6;
+        // check Valid First
+        /*
+         * To Be implemented
+         */
+
+        tryMove(row - 1, col - 1, currentPlayer, 1);
+
+        if (currentPlayer == 1) {
+            currentPlayer = 2;
+        } else {
+            currentPlayer = 1;
+        }
+
+        /* check if the next player have available move*/
+        checkMoreMove(currentPlayer);
+        if (isMoreMove) {
+            // do nothing
+        } else {
+            // switch player again
+            if (currentPlayer == 1) {
+                currentPlayer = 2;
+            } else {
+                currentPlayer = 1;
+            }
+            // check again!
+            checkMoreMove(currentPlayer);
+            if (isMoreMove) {
+                // do nothing
+            } else {
+                // GAME OVER!
+                gameOver();
+            }
+        }
     }
 
     return;
