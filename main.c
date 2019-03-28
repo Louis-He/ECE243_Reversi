@@ -194,6 +194,7 @@ void draw_board();
 void clear_screen();
 void draw_board_row_col_num();
 void draw_score();
+void display_message();
 
 // board manipulation
 void play_chess(int row, int col, int player);
@@ -329,7 +330,9 @@ int main(void){
         draw_board();
         draw_board_row_col_num();
         draw_chess_on_board();
+        countChess();
         draw_score();
+         display_message();
         // code for updating
 
         wait_for_vsync();                           // swap front and back buffers on VGA vertical sync
@@ -447,6 +450,26 @@ void draw_score() {
     print_text(65,  18, black_score);
 }
 
+void display_message() {
+    char text_player[8] = "Player:\0";
+    print_text(65, 24, text_player);
+    char white[11] = "White Move\0";
+    char black[11] = "Black Move\0";
+    if (currentPlayer == 1) {
+        print_text(65, 26, black);
+    } else {
+        print_text(65, 26, white);
+    }
+
+    char text_error_message[13] = "Invalid Move\0";
+    char valid_message[13] = "            \0";
+    if (isError == 1) {
+        print_text(65, 30, text_error_message);
+    } else {
+        print_text(65, 30, valid_message);
+    }
+}
+
 void play_chess(int row, int col, int player){
     board[row * 8 + col] = player;
 }
@@ -471,7 +494,7 @@ void tryMove(int row, int col, int player, int isRealMove){
                     if (isLegal){
                         avaliable = 1;
                         // PLAY CHESS HEREE!!!!
-
+                        setErrorMsg(0);
                         if(isRealMove){
                             isSuccessMove = 1;
                             newChessMove(row, col, player);
@@ -649,7 +672,10 @@ void checkLegalInDirection(int row, int col, int player, int deltaRow, int delta
     // isLegal = 0; // return false;
 }
 
-void setErrorMsg(int errorID) {}
+void setErrorMsg(int errorID) {
+    isError = errorID;
+    errMsgId = errorID;
+}
 
 void clearErrorMsg() {
     isError = 0;
