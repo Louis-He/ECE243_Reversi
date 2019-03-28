@@ -193,6 +193,7 @@ void draw_chess_on_board();
 void draw_board();
 void clear_screen();
 void draw_board_row_col_num();
+void draw_score();
 
 // board manipulation
 void play_chess(int row, int col, int player);
@@ -217,6 +218,7 @@ void draw_box(int xa, int ya, int width, int height, short int color);
 void draw_circle(int xCenter, int yCenter, int player);
 void plot_pixel(int x, int y, short int line_color);
 void draw_number(int x, int y, int num);
+void print_text(int x, int y, char* ptr);
 void wait_for_vsync();
 
 // interrupt config
@@ -327,6 +329,7 @@ int main(void){
         draw_board();
         draw_board_row_col_num();
         draw_chess_on_board();
+        draw_score();
         // code for updating
 
         wait_for_vsync();                           // swap front and back buffers on VGA vertical sync
@@ -428,6 +431,20 @@ void draw_board_row_col_num(){
     {
         draw_number(initial_pos_x + i * 27, initial_pos_y, i + 1);
     }
+}
+
+void draw_score() {
+    // draw text
+    char text_white[8] = "White: \0";
+    print_text(65,  10, text_white);
+    char white_score[5];
+    sprintf(white_score, "%d", scoreWhite);
+    print_text(65 , 12, white_score);
+    char text_black[8] ="Black: \0";
+    print_text(65,  16, text_black);
+    char black_score[5];
+    sprintf(black_score, "%d", scoreBlack);
+    print_text(65,  18, black_score);
 }
 
 void play_chess(int row, int col, int player){
@@ -772,6 +789,18 @@ void draw_number(int x, int y, int num){
             plot_pixel(x + j, y + i, number[num][i * 10 + j]);
             //}
         }
+    }
+}
+
+void print_text(int x, int y, char* ptr) {
+    int offset;
+    volatile char* char_buffer = (char*)FPGA_CHAR_BASE;
+
+    offset = (y << 7) + x;
+    while(*ptr) {
+        *(char_buffer + offset) = *ptr;
+        ++ ptr;
+        ++ offset;
     }
 }
 
