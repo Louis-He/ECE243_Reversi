@@ -182,11 +182,7 @@ const unsigned short number[10][160] = {
         0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xEF7D, 0x0841, 0x632C, 0xD6BA, 0xFFDF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFDF, 0xCE79, 0x630C  // 0x00A0 (160) pixels
     }};
 
-// position
-const int row_number_pos_x[] = {};
-const int row_number_pos_y = 6;
-const int col_number_pos_x = 3;
-const int col_number_pos_y[] = {};
+const char num_to_char[10] = "0123456789\0";
 
 // high level API
 void draw_layout();
@@ -333,7 +329,7 @@ int main(void){
         draw_chess_on_board();
         countChess();
         draw_score();
-         display_message();
+        display_message();
         // code for updating
 
         wait_for_vsync();                           // swap front and back buffers on VGA vertical sync
@@ -440,20 +436,37 @@ void draw_board_row_col_num(){
 }
 
 void draw_score() {
-    // draw text
+    // draw score
     char text_white[8] = "White: \0";
     print_text(65,  10, text_white);
-    char white_score[5];
-    sprintf(white_score, "%d", scoreWhite);
+    char white_score[3] = "  \0";
+    //sprintf(white_score, "%2d", 10);
+    if (scoreWhite < 10) {
+        white_score[0] = num_to_char[scoreWhite];
+    } else {
+        int tenth = (int) scoreWhite / 10;
+        int remainder = scoreWhite % 10;
+        white_score[0] = num_to_char[tenth];
+        white_score[1] = num_to_char[remainder];
+    }
     print_text(65 , 12, white_score);
     char text_black[8] ="Black: \0";
     print_text(65,  16, text_black);
-    char black_score[5];
-    sprintf(black_score, "%d", scoreBlack);
+    char black_score[3] = "  \0";
+    if (scoreBlack < 10) {
+        black_score[0] = num_to_char[scoreBlack];
+    } else {
+        int tenth = (int) scoreBlack / 10;
+        int remainder = scoreBlack % 10;
+        black_score[0] = num_to_char[tenth];
+        black_score[1] = num_to_char[remainder];
+    }
+    //sprintf(black_score, "%2d", 10);
     print_text(65,  18, black_score);
 }
 
 void display_message() {
+    // player move
     char text_player[8] = "Player:\0";
     print_text(65, 24, text_player);
     char white[11] = "White Move\0";
@@ -464,12 +477,27 @@ void display_message() {
         print_text(65, 26, white);
     }
 
+    // move logic
     char text_error_message[13] = "Invalid Move\0";
     char valid_message[13] = "            \0";
     if (isError == 1) {
         print_text(65, 30, text_error_message);
     } else {
         print_text(65, 30, valid_message);
+    }
+
+    // game over
+    if (isGameOver) {
+        if (scoreBlack > scoreWhite) {
+            char msg_game_over[11] = "Black Win!\0";
+            print_text(65, 6, msg_game_over);
+        } else {
+            char msg_game_over[11] = "White Win!\0";
+            print_text(65, 6, msg_game_over);
+        }
+    } else {
+        char msg_game_over[11] = "          \0";
+        print_text(65, 6, msg_game_over);
     }
 }
 
@@ -994,3 +1022,10 @@ void pushbutton_ISR(void){
 
     return;
 }
+
+
+
+
+
+
+
