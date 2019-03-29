@@ -20,6 +20,7 @@ volatile int isSuccessMove; // return usage
 
 /* errMsgID:
  * 1: invalid move
+ * 2: game is already over, press KEY1 to restart
  */
 
 const unsigned short CHESSBLACK[169] = {
@@ -357,6 +358,7 @@ void draw_layout(){
     for (; j < 3; j ++) {
         draw_line(i + j, 0, i + j, 239, 0xFFFF);
     }
+    return;
 }
 
 void draw_chess_on_board(){
@@ -369,6 +371,7 @@ void draw_chess_on_board(){
             draw_chess(i, j, board[i * 8 + j]);
         }
     }
+    return;
 }
 
 void draw_board(){
@@ -570,15 +573,18 @@ void updateChessInDirection(int row, int col, int player, int deltaRow, int delt
             checkCol += deltaCol;
         }
     }
+    return;
 }
 
 // Move single chess
 void chessMove(int row, int col, int player){
     board[row * 8 + col] = player;
+    return;
 }
 
 void gameOver(){
     isGameOver = 1;
+    return;
 }
 
 void countChess(){
@@ -937,6 +943,8 @@ void pushbutton_ISR(void){
 
     if(isGameOver) {
         // do nothing??
+        isError = 1;
+        errMsgId = 2;
     } else {
         volatile int *SW_ptr = (int *) SW_BASE;
         int user_sw = *SW_ptr;
